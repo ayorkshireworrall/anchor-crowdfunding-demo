@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { Program, AnchorError } from "@coral-xyz/anchor";
 import * as assert from "assert"
 import { BN } from "bn.js";
 const { SystemProgram } = anchor.web3;
@@ -17,9 +17,9 @@ describe("crowdfunding", () => {
   let campaignPubKey;
 
   before(async () => {
+    // only works because in these tests we create a single campaign with name Test
     [campaignPubKey] = anchor.web3.PublicKey.findProgramAddressSync(
-      [anchor.utils.bytes.utf8.encode("campaign"), provider.wallet.publicKey.toBuffer(), anchor.utils.bytes.utf8.encode("Test")],
-      // [anchor.utils.bytes.utf8.encode("campaign")],
+      [anchor.utils.bytes.utf8.encode("campaign"), anchor.utils.bytes.utf8.encode("Test")],
       program.programId
     )
   })
@@ -42,6 +42,22 @@ describe("crowdfunding", () => {
     assert.ok(campaignAccount.description === 'A test crowdfunding campaign');
     console.log('Authorised campaign admin: ', campaignAccount.admin)
   });
+
+  it('cannot create a duplicate name', async () => {
+    try {
+      await program.methods
+        .create('Test', 'Duplicated name should fail')
+        .accounts({
+          campaign: campaignPubKey,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId
+        })
+        .rpc();
+    } catch (error) {
+      const err: AnchorError = error;
+      assert.ok('failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x0' === err.message); // seed constraint error doesn't seem to propagate very well so this is what is thrown
+    }
+  })
 
   it('can donate', async () => {
     const intialCampaignAccountBalance = (await program.account.campaign.getAccountInfo(campaignPubKey)).lamports; // the amount already put on the campaign when created to cover rent

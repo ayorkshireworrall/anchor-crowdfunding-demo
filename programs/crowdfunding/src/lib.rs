@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("7gBnxsoGc1rgpqhCM6KF1t7ThdqcBj3Jen5nxoAbE5K5");
+declare_id!("3AZjYzmhGpnj5qK9Ddu9aaEbJXUs2UQtzX9XzKcUoELp");
 
 #[program]
 pub mod crowdfunding {
@@ -64,7 +64,7 @@ pub struct Create<'info> {
         init, 
         payer=user, 
         space=9000, 
-        seeds=[b"campaign", user.key.as_ref(), name.as_bytes().as_ref()],
+        seeds=[b"campaign", name.as_bytes().as_ref()],
         bump
     )]
     campaign: Account<'info, Campaign>,
@@ -78,7 +78,7 @@ pub struct Create<'info> {
 pub struct Withdraw<'info> {
     #[account(
         mut,
-        seeds=[b"campaign", user.key.as_ref(), name.as_bytes().as_ref()],
+        seeds=[b"campaign", name.as_bytes().as_ref()],
         bump
     )]
     pub campaign: Account<'info, Campaign>,
@@ -91,7 +91,7 @@ pub struct Withdraw<'info> {
 pub struct Donate<'info> {
     #[account(
         mut,
-        seeds=[b"campaign", user.key.as_ref(), name.as_bytes().as_ref()],
+        seeds=[b"campaign", name.as_bytes().as_ref()],
         bump = campaign.bump
     )]
     pub campaign: Account<'info, Campaign>,

@@ -90,7 +90,6 @@ const App = () => {
       console.log(program.programId.toString())
       const [campaign] = PublicKey.findProgramAddressSync([
         utils.bytes.utf8.encode('campaign'),
-        provider.wallet.publicKey.toBuffer(),
         utils.bytes.utf8.encode(name)
       ], program.programId);
 
@@ -109,14 +108,14 @@ const App = () => {
     }
   }
 
-  const donate = async (campaignKey, amount) => {
+  const donate = async (campaignKey, campaignName, amount) => {
     console.log(`A donation of ${amount} has been requested to the campaign with ID ${campaignKey}`)
     try {
       const provider = getProvider();
       const program = new Program(idl, programId, provider);
 
       await program.methods
-        .donate(new BN(amount * web3.LAMPORTS_PER_SOL))
+        .donate(campaignName, new BN(amount * web3.LAMPORTS_PER_SOL))
         .accounts({
           campaign: campaignKey,
           user: provider.wallet.publicKey,
@@ -129,14 +128,14 @@ const App = () => {
     }
   }
 
-  const withdraw = async (campaignKey, amount) => {
+  const withdraw = async (campaignKey, campaignName, amount) => {
     console.log('About to withdraw from campaign ', campaignKey.toString());
     try {
       const provider = getProvider();
       const program = new Program(idl, programId, provider);
 
       await program.methods
-        .withdraw(new BN(amount * web3.LAMPORTS_PER_SOL))
+        .withdraw(campaignName, new BN(amount * web3.LAMPORTS_PER_SOL))
         .accounts({
           campaign: campaignKey,
           user: provider.wallet.publicKey
@@ -169,8 +168,8 @@ const App = () => {
               <p>Balance: {(campaign.amountDonated / web3.LAMPORTS_PER_SOL).toString()}</p>
               <p>Name: {campaign.name}</p>
               <p>Description: {campaign.description}</p>
-              <button onClick={() => donate(campaign.pubkey, 0.2)}>Click To Donate</button>
-              <button onClick={() => withdraw(campaign.pubkey, 0.2)}>Click To Withdraw</button>
+              <button onClick={() => donate(campaign.pubkey, campaign.name, 0.2)}>Click To Donate</button>
+              <button onClick={() => withdraw(campaign.pubkey, campaign.name, 0.2)}>Click To Withdraw</button>
             </>
           )
         })}
